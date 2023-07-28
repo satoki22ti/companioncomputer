@@ -438,7 +438,7 @@ class Control:
         # this is to prevent that winch to stall with heavy package and low acceleration set
 
         velocity = -max(profile.velocity_max, self.config.homing.velocity)
-        if telemetry.force < self.ASR_force.avg():
+        if math.abs(telemetry.force) < math.abs(self.ASR_force.avg()):
             del_vel  = 0.1
 
         else:
@@ -479,7 +479,15 @@ class Control:
 
 
         # Set a homing speed, so we can move towards home
-        self.driver.setpoint(velocity=self.config.homing.velocity, force=self.config.homing.force) # velocity was self.config.homing.velocity
+        if math.abs(telemetry.force) < math.abs(self.ASR_force.avg()):
+            del_vel  = 0.1
+
+        else:
+            del_vel = 0.4
+
+        velocity = velocity + del_vel
+        self.driver.setpoint(velocity=velocity, force=self.config.retract.force)
+        #self.driver.setpoint(velocity=self.config.homing.velocity, force=self.config.homing.force) # velocity was self.config.homing.velocity
 
         # Calculate how long it should take to reach target to use for timeout
         # To simplify, use target speed of 0.0 in calculation
