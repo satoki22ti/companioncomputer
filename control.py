@@ -443,7 +443,7 @@ class Control:
             factor  = 1.0
 
         else:
-            factor = 0.75
+            factor = 0.50
 
         velocity = velocity*factor
         self.driver.setpoint(velocity=velocity, force=self.config.retract.force)
@@ -481,11 +481,11 @@ class Control:
 
 
         # Set a homing speed, so we can move towards home
-        if telemetry.force < 2.4 and telemetry.force > -2.4:
+        if telemetry.force > -2.4:
             factor  = 1.0
 
         else:
-            factor = 0.5
+            factor = 0.1
 
         velocity = self.config.homing.velocity* factor
         self.driver.setpoint(velocity=velocity, force=self.config.retract.force)
