@@ -15,7 +15,6 @@ from winch_control.motor_driver.types import State as MotorState, Telemetry
 from winch_control.calculators.acceleration_calculator import AccelerationCalculator
 from winch_control.commander.commander import Commander, DropBlockReason
 from winch_control.calculators.sum import MovingSum
-from ASR import ASR
 
 
 RASPBERRY_LIMIT_SWITCH_PIN = 13  # 13 (board pin) is GPIO 27
@@ -55,11 +54,8 @@ class Control:
         # For sending status update to commander
         self.time_last_status_sent = 0.0
         self.force_moving_sum = MovingSum(FORCE_AVERAGE_NUMBER_OF_SAMPLES)
+        self.ASR_force = MovingSum(100)
         self.last_position_sent_as_message = 0.0
-
-        # for ASR
-        tension_list = []
-
 
         # All state/data not covered by state machine.
         # Should be kept as minimal as possible.
@@ -436,11 +432,7 @@ class Control:
         # Update with new calculated setpoint
         # Set homing velocity as a minimum velocity,
         # this is to prevent that winch to stall with heavy package and low acceleration set
-        remaining_distance = telemetry.position - (self.home_position + self.config.retract.homing_distance)
-        self.ASR.tension_update()
-        velocity = -1* self.ASR.ASR(remaining_distance, 0.65) 
-        ############################ changed this for optimal control!! ############################################
-        #velocity = -1* max(profile.velocity_max, velocity) #self.config.homing.velocity
+        velocity = -max(profile.velocity_max, self.config.homing.velocity)
         self.driver.setpoint(velocity=velocity, force=self.config.retract.force)
 
         # TODO Make timeout margins configurable? Might not be needed for this...
@@ -473,8 +465,14 @@ class Control:
             self.event_generator.set_timeout(0.0)  # Immediately transition to timeout
             return
 
+        if telemetry.force < self.ASR_force:
+            velocity = -self.config.homing.velocity
+
+        else:
+            velocity = -self.config.homing.velocity/2
+
         # Set a homing speed, so we can move towards home
-        self.driver.setpoint(velocity=-self.config.homing.velocity, force=self.config.homing.force)
+        self.driver.setpoint(velocity=velocity, force=self.config.homing.force) # velocity was self.config.homing.velocity
 
         # Calculate how long it should take to reach target to use for timeout
         # To simplify, use target speed of 0.0 in calculation
