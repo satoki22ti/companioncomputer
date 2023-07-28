@@ -487,7 +487,7 @@ class Control:
         else:
             del_vel = 0.4
 
-        velocity = velocity + del_vel
+        velocity = self.config.homing.velocity + del_vel
         self.driver.setpoint(velocity=velocity, force=self.config.retract.force)
         #self.driver.setpoint(velocity=self.config.homing.velocity, force=self.config.homing.force) # velocity was self.config.homing.velocity
 
