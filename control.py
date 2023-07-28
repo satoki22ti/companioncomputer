@@ -54,7 +54,7 @@ class Control:
         # For sending status update to commander
         self.time_last_status_sent = 0.0
         self.force_moving_sum = MovingSum(FORCE_AVERAGE_NUMBER_OF_SAMPLES)
-        self.ASR_force = MovingSum(100)
+        self.ASR_force = MovingSum(30)
         self.last_position_sent_as_message = 0.0
 
         # All state/data not covered by state machine.
@@ -281,6 +281,7 @@ class Control:
     def action_drop(self) -> None:
         self.logger.debug('CONTROL: action_drop')
         telemetry = self.driver.telemetry()
+        self.ASR_force.update(telemetry.force) # this is for ASR
         if (telemetry.state != MotorState.RUNNING
                 or not math.isfinite(telemetry.position)
                 or not math.isfinite(telemetry.velocity)
@@ -323,6 +324,7 @@ class Control:
     def action_drop_slowing(self) -> None:
         self.logger.debug('CONTROL: action_drop_slowing')
         telemetry = self.driver.telemetry()
+        self.ASR_force.update(telemetry.force) # this is for ASR
         if (telemetry.state != MotorState.RUNNING
                 or not math.isfinite(telemetry.position)
                 or not math.isfinite(telemetry.velocity)
@@ -349,8 +351,10 @@ class Control:
     def action_prepare_retract(self) -> None:
         self.logger.debug('CONTROL: action_prepare_retract')
         self.commander.send_message('Winch: Retract started')
+        
 
         telemetry = self.driver.telemetry()
+        self.ASR_force.update(telemetry.force) # this is for ASR
         if (telemetry.state != MotorState.RUNNING
                 or not math.isfinite(telemetry.position)
                 or not math.isfinite(telemetry.velocity)
@@ -432,7 +436,15 @@ class Control:
         # Update with new calculated setpoint
         # Set homing velocity as a minimum velocity,
         # this is to prevent that winch to stall with heavy package and low acceleration set
+
         velocity = -max(profile.velocity_max, self.config.homing.velocity)
+        if telemetry.force < self.ASR_force.avg():
+            del_vel  = 0.1
+
+        else:
+            del_vel = 0.4
+
+        velocity = velocity + del_vel
         self.driver.setpoint(velocity=velocity, force=self.config.retract.force)
 
         # TODO Make timeout margins configurable? Might not be needed for this...
@@ -465,14 +477,9 @@ class Control:
             self.event_generator.set_timeout(0.0)  # Immediately transition to timeout
             return
 
-        if telemetry.force < self.ASR_force:
-            velocity = -self.config.homing.velocity
-
-        else:
-            velocity = -self.config.homing.velocity/2
 
         # Set a homing speed, so we can move towards home
-        self.driver.setpoint(velocity=velocity, force=self.config.homing.force) # velocity was self.config.homing.velocity
+        self.driver.setpoint(velocity=self.config.homing.velocity, force=self.config.homing.force) # velocity was self.config.homing.velocity
 
         # Calculate how long it should take to reach target to use for timeout
         # To simplify, use target speed of 0.0 in calculation
