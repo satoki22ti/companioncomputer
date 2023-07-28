@@ -440,12 +440,12 @@ class Control:
 
         velocity = -max(profile.velocity_max, self.config.homing.velocity)
         if math.abs(telemetry.force) < 1:
-            del_vel  = 0.0
+            factor  = 1.0
 
         else:
-            del_vel = 0.1
+            factor = 0.75
 
-        velocity = velocity + del_vel
+        velocity = velocity*factor
         self.driver.setpoint(velocity=velocity, force=self.config.retract.force)
 
         # TODO Make timeout margins configurable? Might not be needed for this...
