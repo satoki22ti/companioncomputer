@@ -58,7 +58,7 @@ class Control:
         self.last_position_sent_as_message = 0.0
 
         # To upadte ASR
-        self.ASR = ASR(self.config.retract.velocity, count= 10, lpf= 0.8, logger=logger)
+        self.ASR = ASR(count= 10, lpf= 0.8, logger=logger)
 
 
         # All state/data not covered by state machine.
@@ -436,13 +436,10 @@ class Control:
         # Update with new calculated setpoint
         # Set homing velocity as a minimum velocity,
         # this is to prevent that winch to stall with heavy package and low acceleration set
-        print("line 439")
         remaining_distance = telemetry.position - (self.home_position + self.config.retract.homing_distance)
         self.ASR.tension_update()
-        print("tension update")
-        velocity = - self.ASR.ASR(remaining_distance) ############################ changed this for optimal control!! ############################################
-        #velocity = -max(profile.velocity_max, self.config.homing.velocity)
-        print("ASR velocity")
+        velocity = - self.ASR.ASR(remaining_distance, profile.velocity_max) ############################ changed this for optimal control!! ############################################
+        velocity = -max(velocity, self.config.homing.velocity)
         self.driver.setpoint(velocity=velocity, force=self.config.retract.force)
 
         # TODO Make timeout margins configurable? Might not be needed for this...

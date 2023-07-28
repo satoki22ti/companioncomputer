@@ -15,11 +15,10 @@ class ASR:
     """ASR, Anti-Swing Restaction is an algorithm to minimise the swing amplitude while the retraction
     base: minimal retraction velocity, sigma: sensitivity """
 
-    def __init__(self, max_rectaction_vel, count, lpf, logger: Logger):
+    def __init__(self, count, lpf, logger: Logger):
         self.lpf = lpf
-        self.max_vel = max_rectaction_vel
         self.tension_old = 0.0
-        self.tension_lfp = 0.0
+        self.tension_lpf = 0.0
         self.flag = 0
         self.tension_list = []
         self.count  = count
@@ -33,12 +32,12 @@ class ASR:
 
 
     
-    def ASR(self, len) -> float:
+    def ASR(self, len, velocity_max) -> float:
         self.len = len
 
         if self.len > 0.2 and self.len < 5.0:
             # ASR
-            #self.logger.debug('CONTROL: ASR activated')
+            self.logger.debug('CONTROL: ASR activated')
             if self.flag(self.flag == 0):
                 T = self.tension_list[-1]
 
@@ -46,15 +45,15 @@ class ASR:
                 self.flag = self.flag - 1
 
             if T < math.average(self.tension_list): #when velocity is expected to be high
-                #self.logger.debug('CONTROL: ASR slow swing detected')
-                retract = self.max_vel
+                #elf.logger.debug('CONTROL: ASR slow swing detected')
+                retract = velocity_max
                 self.flag = self.count # avoid tension calculation for a while
                 
                 return retract
 
             else: # when velocity is high
-                #self.logger.debug('CONTROL: ASR fast swing detected')
-                return self.max_vel/1.5
+                self.logger.debug('CONTROL: ASR fast swing detected')
+                return velocity_max/1.5
                 
 
             
