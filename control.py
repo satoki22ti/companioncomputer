@@ -440,10 +440,10 @@ class Control:
 
         velocity = -max(profile.velocity_max, self.config.homing.velocity)
         if math.abs(telemetry.force) < math.abs(self.ASR_force.avg()):
-            del_vel  = 0.1
+            del_vel  = 0.0
 
         else:
-            del_vel = 0.4
+            del_vel = 0.1
 
         velocity = velocity + del_vel
         self.driver.setpoint(velocity=velocity, force=self.config.retract.force)
@@ -482,10 +482,10 @@ class Control:
 
         # Set a homing speed, so we can move towards home
         if math.abs(telemetry.force) < math.abs(self.ASR_force.avg()):
-            del_vel  = 0.1
+            del_vel  = 0.0
 
         else:
-            del_vel = 0.4
+            del_vel = 0.1
 
         velocity = -1* self.config.homing.velocity + del_vel
         self.driver.setpoint(velocity=velocity, force=self.config.retract.force)
