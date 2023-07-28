@@ -395,6 +395,7 @@ class Control:
     def action_retract(self) -> None:
         self.logger.debug('CONTROL: action_retract')
         telemetry = self.driver.telemetry()
+        self.ASR_force.update(telemetry.force) # this is for ASR
         if (telemetry.state != MotorState.RUNNING
                 or not math.isfinite(telemetry.position)
                 or not math.isfinite(telemetry.velocity)
@@ -467,6 +468,7 @@ class Control:
     def action_retract_slowing(self) -> None:
         self.logger.debug('CONTROL: action_retract_slowing')
         telemetry = self.driver.telemetry()
+        self.ASR_force.update(telemetry.force) # this is for ASR
         if (telemetry.state != MotorState.RUNNING
                 or not math.isfinite(telemetry.position)
                 or not math.isfinite(telemetry.velocity)
