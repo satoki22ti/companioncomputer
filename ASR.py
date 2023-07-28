@@ -35,7 +35,7 @@ class ASR:
     def ASR(self, len, velocity_max) -> float:
         self.len = len
 
-        if self.len > 0.2 and self.len < 5.0:
+        if self.len > 0.2 and self.len < 2.0:
             # ASR
             self.logger.debug('CONTROL: ASR activated')
             if self.flag(self.flag == 0):
@@ -49,11 +49,11 @@ class ASR:
                 retract = velocity_max
                 self.flag = self.count # avoid tension calculation for a while
                 
-                return retract
+                return retract/10
 
             else: # when velocity is high
                 self.logger.debug('CONTROL: ASR fast swing detected')
-                return velocity_max/1.5
+                return velocity_max/10
                 
 
             

@@ -438,9 +438,9 @@ class Control:
         # this is to prevent that winch to stall with heavy package and low acceleration set
         remaining_distance = telemetry.position - (self.home_position + self.config.retract.homing_distance)
         self.ASR.tension_update()
-        velocity = - self.ASR.ASR(remaining_distance, 0.65) 
+        velocity = -1* self.ASR.ASR(remaining_distance, 0.65) 
         ############################ changed this for optimal control!! ############################################
-        velocity = -1* max(profile.velocity_max, velocity) #self.config.homing.velocity
+        #velocity = -1* max(profile.velocity_max, velocity) #self.config.homing.velocity
         self.driver.setpoint(velocity=velocity, force=self.config.retract.force)
 
         # TODO Make timeout margins configurable? Might not be needed for this...
