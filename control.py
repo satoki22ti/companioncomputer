@@ -54,7 +54,7 @@ class Control:
         # For sending status update to commander
         self.time_last_status_sent = 0.0
         self.force_moving_sum = MovingSum(FORCE_AVERAGE_NUMBER_OF_SAMPLES)
-        self.ASR_force = MovingSum(50)
+        self.ASR_force = MovingSum(30)
         self.last_position_sent_as_message = 0.0
 
         # All state/data not covered by state machine.
