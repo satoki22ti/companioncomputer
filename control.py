@@ -440,7 +440,7 @@ class Control:
         self.ASR.tension_update()
         velocity = - self.ASR.ASR(remaining_distance, 0.65) 
         ############################ changed this for optimal control!! ############################################
-        velocity = -1* max(velocity, self.config.homing.velocity)
+        velocity = -1* max(profile.velocity_max, velocity) #self.config.homing.velocity
         self.driver.setpoint(velocity=velocity, force=self.config.retract.force)
 
         # TODO Make timeout margins configurable? Might not be needed for this...
