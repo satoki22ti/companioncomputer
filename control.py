@@ -439,11 +439,11 @@ class Control:
         # this is to prevent that winch to stall with heavy package and low acceleration set
 
         velocity = -max(profile.velocity_max, self.config.homing.velocity)
-        if telemetry.force > - 2.4 and telemetry.force < 2.4:
-            factor  = 1.0
+        if remaining_distance< 2.5:
+            factor  = 0.2
 
         else:
-            factor = 0.50
+            factor = 1.0
 
         velocity = velocity*factor
         self.driver.setpoint(velocity=velocity, force=self.config.retract.force)
@@ -481,11 +481,8 @@ class Control:
 
 
         # Set a homing speed, so we can move towards home
-        if telemetry.force > -2.4:
-            factor  = 1.0
-
-        else:
-            factor = 0.1
+        
+        factor = 0.5
 
         velocity = self.config.homing.velocity* factor
         self.driver.setpoint(velocity=velocity, force=self.config.retract.force)
